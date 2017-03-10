@@ -11,6 +11,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
+	middleware "github.com/go-openapi/runtime/middleware"
 	"github.com/whpearson/todo-server/models"
 )
 
