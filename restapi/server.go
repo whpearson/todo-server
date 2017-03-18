@@ -3,6 +3,7 @@ package restapi
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net"
@@ -12,10 +13,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-openapi/runtime/flagext"
+	"github.com/go-openapi/swag"
 	flags "github.com/jessevdk/go-flags"
 	graceful "github.com/tylerb/graceful"
-  flagext "github.com/go-openapi/runtime/flagext"
-  swag "github.com/go-openapi/swag"
+
 	"github.com/whpearson/todo-server/restapi/operations"
 )
 
@@ -43,7 +45,7 @@ func NewServer(api *operations.SimpleToDoListAPI) *Server {
 	return s
 }
 
-// ConfigureAPI configures the API and handlers. Needs to be called before Serve
+// ConfigureAPI configures the API and handlers.
 func (s *Server) ConfigureAPI() {
 	if s.api != nil {
 		s.handler = configureAPI(s.api)
@@ -145,6 +147,15 @@ func (s *Server) Serve() (err error) {
 		}
 	}
 
+	// set default handler, if none is set
+	if s.handler == nil {
+		if s.api == nil {
+			return errors.New("can't create the default handler, as no api is set")
+		}
+
+		s.SetHandler(s.api.Serve(nil))
+	}
+
 	var wg sync.WaitGroup
 
 	if s.hasScheme(schemeUnix) {
@@ -172,6 +183,8 @@ func (s *Server) Serve() (err error) {
 	if s.hasScheme(schemeHTTP) {
 		httpServer := &graceful.Server{Server: new(http.Server)}
 		httpServer.MaxHeaderBytes = int(s.MaxHeaderSize)
+		httpServer.ReadTimeout = s.ReadTimeout
+		httpServer.WriteTimeout = s.WriteTimeout
 		httpServer.SetKeepAlivesEnabled(int64(s.KeepAlive) > 0)
 		httpServer.TCPKeepAlive = s.KeepAlive
 		if s.ListenLimit > 0 {

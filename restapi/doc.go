@@ -8,11 +8,11 @@
     Version: 0.1.0
 
     Consumes:
-    - application/io.swagger.examples.todo-list.v1+json
+    - application/json
 
 
     Produces:
-    - application/io.swagger.examples.todo-list.v1+json
+    - application/json
 
 
 swagger:meta

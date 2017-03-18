@@ -11,6 +11,9 @@ import (
 	"github.com/whpearson/todo-server/models"
 )
 
+// DestroyOneNoContentCode is the HTTP code returned for type DestroyOneNoContent
+const DestroyOneNoContentCode int = 204
+
 /*DestroyOneNoContent Deleted
 
 swagger:response destroyOneNoContent

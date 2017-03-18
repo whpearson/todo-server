@@ -11,6 +11,9 @@ import (
 	"github.com/whpearson/todo-server/models"
 )
 
+// UpdateOneOKCode is the HTTP code returned for type UpdateOneOK
+const UpdateOneOKCode int = 200
+
 /*UpdateOneOK OK
 
 swagger:response updateOneOK

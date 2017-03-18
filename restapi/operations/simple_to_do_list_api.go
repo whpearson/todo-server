@@ -8,13 +8,15 @@ import (
 	"net/http"
 	"strings"
 
+	errors "github.com/go-openapi/errors"
 	loads "github.com/go-openapi/loads"
 	runtime "github.com/go-openapi/runtime"
 	middleware "github.com/go-openapi/runtime/middleware"
-	security "github.com/go-openapi/runtime/security"
+//	security "github.com/go-openapi/runtime/security"
 	spec "github.com/go-openapi/spec"
 	strfmt "github.com/go-openapi/strfmt"
-  swag "github.com/go-openapi/swag"
+	"github.com/go-openapi/swag"
+
 	"github.com/whpearson/todo-server/restapi/operations/todos"
 )
 
@@ -27,6 +29,26 @@ func NewSimpleToDoListAPI(spec *loads.Document) *SimpleToDoListAPI {
 		defaultProduces: "application/json",
 		ServerShutdown:  func() {},
 		spec:            spec,
+		ServeError:      errors.ServeError,
+		JSONConsumer:    runtime.JSONConsumer(),
+		JSONProducer:    runtime.JSONProducer(),
+		TodosAddOneHandler: todos.AddOneHandlerFunc(func(params todos.AddOneParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation TodosAddOne has not yet been implemented")
+		}),
+		TodosDestroyOneHandler: todos.DestroyOneHandlerFunc(func(params todos.DestroyOneParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation TodosDestroyOne has not yet been implemented")
+		}),
+		TodosFindHandler: todos.FindHandlerFunc(func(params todos.FindParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation TodosFind has not yet been implemented")
+		}),
+		TodosUpdateOneHandler: todos.UpdateOneHandlerFunc(func(params todos.UpdateOneParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation TodosUpdateOne has not yet been implemented")
+		}),
+
+		// Applies when the "x-todolist-token" header is set
+		KeyAuth: func(token string) (interface{}, error) {
+			return nil, errors.NotImplemented("api key auth (key) x-todolist-token from header param [x-todolist-token] has not yet been implemented")
+		},
 	}
 }
 
@@ -39,10 +61,10 @@ type SimpleToDoListAPI struct {
 	defaultConsumes string
 	defaultProduces string
 	Middleware      func(middleware.Builder) http.Handler
-	// JSONConsumer registers a consumer for a "application/io.swagger.examples.todo-list.v1+json" mime type
+	// JSONConsumer registers a consumer for a "application/json" mime type
 	JSONConsumer runtime.Consumer
 
-	// JSONProducer registers a producer for a "application/io.swagger.examples.todo-list.v1+json" mime type
+	// JSONProducer registers a producer for a "application/json" mime type
 	JSONProducer runtime.Producer
 
 	// KeyAuth registers a function that takes a token and returns a principal
@@ -156,7 +178,7 @@ func (o *SimpleToDoListAPI) ServeErrorFor(operationID string) func(http.Response
 func (o *SimpleToDoListAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
 
 	result := make(map[string]runtime.Authenticator)
-	for name, scheme := range schemes {
+/*	for name, scheme := range schemes {
 		switch name {
 
 		case "key":
@@ -164,7 +186,7 @@ func (o *SimpleToDoListAPI) AuthenticatorsFor(schemes map[string]spec.SecuritySc
 			result[name] = security.APIKeyAuth(scheme.Name, scheme.In, o.KeyAuth)
 
 		}
-	}
+	} */
 	return result
 
 }
@@ -176,8 +198,8 @@ func (o *SimpleToDoListAPI) ConsumersFor(mediaTypes []string) map[string]runtime
 	for _, mt := range mediaTypes {
 		switch mt {
 
-		case "application/io.swagger.examples.todo-list.v1+json":
-			result["application/io.swagger.examples.todo-list.v1+json"] = o.JSONConsumer
+		case "application/json":
+			result["application/json"] = o.JSONConsumer
 
 		}
 	}
@@ -192,8 +214,8 @@ func (o *SimpleToDoListAPI) ProducersFor(mediaTypes []string) map[string]runtime
 	for _, mt := range mediaTypes {
 		switch mt {
 
-		case "application/io.swagger.examples.todo-list.v1+json":
-			result["application/io.swagger.examples.todo-list.v1+json"] = o.JSONProducer
+		case "application/json":
+			result["application/json"] = o.JSONProducer
 
 		}
 	}
@@ -231,22 +253,22 @@ func (o *SimpleToDoListAPI) initHandlerCache() {
 	}
 
 	if o.handlers["POST"] == nil {
-		o.handlers[strings.ToUpper("POST")] = make(map[string]http.Handler)
+		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/"] = todos.NewAddOne(o.context, o.TodosAddOneHandler)
 
 	if o.handlers["DELETE"] == nil {
-		o.handlers[strings.ToUpper("DELETE")] = make(map[string]http.Handler)
+		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
 	o.handlers["DELETE"]["/{id}"] = todos.NewDestroyOne(o.context, o.TodosDestroyOneHandler)
 
 	if o.handlers["GET"] == nil {
-		o.handlers[strings.ToUpper("GET")] = make(map[string]http.Handler)
+		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/"] = todos.NewFind(o.context, o.TodosFindHandler)
 
 	if o.handlers["PUT"] == nil {
-		o.handlers[strings.ToUpper("PUT")] = make(map[string]http.Handler)
+		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
 	o.handlers["PUT"]["/{id}"] = todos.NewUpdateOne(o.context, o.TodosUpdateOneHandler)
 

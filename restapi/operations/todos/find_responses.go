@@ -11,6 +11,9 @@ import (
 	"github.com/whpearson/todo-server/models"
 )
 
+// FindOKCode is the HTTP code returned for type FindOK
+const FindOKCode int = 200
+
 /*FindOK OK
 
 swagger:response findOK

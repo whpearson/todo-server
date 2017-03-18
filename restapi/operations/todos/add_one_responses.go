@@ -11,6 +11,9 @@ import (
 	"github.com/whpearson/todo-server/models"
 )
 
+// AddOneCreatedCode is the HTTP code returned for type AddOneCreated
+const AddOneCreatedCode int = 201
+
 /*AddOneCreated Created
 
 swagger:response addOneCreated
