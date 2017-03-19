@@ -11,11 +11,45 @@ import (
 
 	"github.com/whpearson/todo-server/restapi/operations"
 	"github.com/whpearson/todo-server/restapi/operations/todos"
+	"github.com/whpearson/todo-server/models"
+
 )
 
 // This file is safe to edit. Once it exists it will not be overwritten
 
 //go:generate swagger generate server --target ../src/github.com/whpearson/todo-server --name  --spec ../go-swagger/examples/todo-list/swagger.yml
+
+type okResp struct {
+	code     int
+	response interface{}
+	headers  http.Header
+}
+
+func (e *okResp) WriteResponse(rw http.ResponseWriter , producer runtime.Producer) {
+	for k, v := range e.headers {
+		for _, val := range v {
+			rw.Header().Add(k, val)
+		}
+	}
+	if e.code > 0 {
+		rw.WriteHeader(e.code)
+	} else {
+		rw.WriteHeader(http.StatusOK)
+	}
+	if err := producer.Produce(rw, e.response); err != nil {
+		panic(err)
+	}
+}
+
+// NotImplemented the error response when the response is not implemented
+func Implemented(message string) middleware.Responder {
+  var headers = make(http.Header)
+  headers.Add("Content-Type", "application/json")
+  return &okResp{http.StatusCreated, message, headers}
+}
+
+
+
 
 func configureFlags(api *operations.SimpleToDoListAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
@@ -35,22 +69,28 @@ func configureAPI(api *operations.SimpleToDoListAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
+  api.SetDefaultProduces( "application/json" )
+
 	// Applies when the "x-todolist-token" header is set
 	api.KeyAuth = func(token string) (interface{}, error) {
 		return nil, errors.NotImplemented("api key auth (key) x-todolist-token from header param [x-todolist-token] has not yet been implemented")
 	}
 
 	api.TodosAddOneHandler = todos.AddOneHandlerFunc(func(params todos.AddOneParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation todos.AddOne has not yet been implemented")
+		return todos.NewAddOneCreated().WithPayload(params.Body)
 	})
 	api.TodosDestroyOneHandler = todos.DestroyOneHandlerFunc(func(params todos.DestroyOneParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation todos.DestroyOne has not yet been implemented")
+	  return todos.NewDestroyOneNoContent()
 	})
-	api.TodosFindHandler = todos.FindHandlerFunc(func(params todos.FindParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation todos.Find has not yet been implemented")
+	var desc = "HI"
+  api.TodosFindHandler = todos.FindHandlerFunc(func(params todos.FindParams, principal interface{}) middleware.Responder {
+		return todos.NewFindOK().WithPayload([]*models.Item{&models.Item{
+			Description:  &desc,
+      ID:           1,
+	}})
 	})
 	api.TodosUpdateOneHandler = todos.UpdateOneHandlerFunc(func(params todos.UpdateOneParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation todos.UpdateOne has not yet been implemented")
+		return todos.NewUpdateOneOK().WithPayload(params.Body)
 	})
 
 	api.ServerShutdown = func() {}

@@ -20,6 +20,37 @@ import (
 	"github.com/whpearson/todo-server/restapi/operations/todos"
 )
 
+
+type okResp struct {
+	code     int
+	response interface{}
+	headers  http.Header
+}
+
+func (e *okResp) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+	for k, v := range e.headers {
+		for _, val := range v {
+			rw.Header().Add(k, val)
+		}
+	}
+	if e.code > 0 {
+		rw.WriteHeader(e.code)
+	} else {
+		rw.WriteHeader(http.StatusOK)
+	}
+	if err := producer.Produce(rw, e.response); err != nil {
+		panic(err)
+	}
+}
+
+// NotImplemented the error response when the response is not implemented
+func Implemented(message string) middleware.Responder {
+	return &okResp{http.StatusOK, message, make(http.Header)}
+}
+
+
+
+
 // NewSimpleToDoListAPI creates a new SimpleToDoList instance
 func NewSimpleToDoListAPI(spec *loads.Document) *SimpleToDoListAPI {
 	return &SimpleToDoListAPI{
@@ -33,16 +64,16 @@ func NewSimpleToDoListAPI(spec *loads.Document) *SimpleToDoListAPI {
 		JSONConsumer:    runtime.JSONConsumer(),
 		JSONProducer:    runtime.JSONProducer(),
 		TodosAddOneHandler: todos.AddOneHandlerFunc(func(params todos.AddOneParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation TodosAddOne has not yet been implemented")
+			return Implemented("operation TodosAddOne has just been implemented")
 		}),
 		TodosDestroyOneHandler: todos.DestroyOneHandlerFunc(func(params todos.DestroyOneParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation TodosDestroyOne has not yet been implemented")
+			return Implemented("operation TodosDestroyOne has not yet been implemented")
 		}),
 		TodosFindHandler: todos.FindHandlerFunc(func(params todos.FindParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation TodosFind has not yet been implemented")
+			return Implemented("operation TodosFind has not yet been implemented")
 		}),
 		TodosUpdateOneHandler: todos.UpdateOneHandlerFunc(func(params todos.UpdateOneParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation TodosUpdateOne has not yet been implemented")
+			return Implemented("operation TodosUpdateOne has not yet been implemented")
 		}),
 
 		// Applies when the "x-todolist-token" header is set

@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
+//	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
@@ -63,12 +63,12 @@ func (o *FindParams) BindRequest(r *http.Request, route *middleware.MatchedRoute
 			return err
 		}
 	}
-	fds := runtime.Values(r.Form)
+	//fds := runtime.Values(r.Form)
 
 	if err := o.bindXRateLimit(r.Header[http.CanonicalHeaderKey("X-Rate-Limit")], true, route.Formats); err != nil {
 		res = append(res, err)
 	}
-
+/*
 	fdLimit, fdhkLimit, _ := fds.GetOK("limit")
 	if err := o.bindLimit(fdLimit, fdhkLimit, route.Formats); err != nil {
 		res = append(res, err)
@@ -78,7 +78,7 @@ func (o *FindParams) BindRequest(r *http.Request, route *middleware.MatchedRoute
 	if err := o.bindTags(fdTags, fdhkTags, route.Formats); err != nil {
 		res = append(res, err)
 	}
-
+*/
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
